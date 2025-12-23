@@ -30,7 +30,7 @@
 //! ## Example
 //!
 //! ```
-//! use ledger_demo_rs::{Engine, ClientId, TransactionId, TransactionType, TransactionStatus};
+//! use ledger_demo_rs::{Engine, ClientId, TransactionId, TransactionType};
 //! use rust_decimal_macros::dec;
 //!
 //! let engine = Engine::new();
@@ -40,7 +40,6 @@
 //!     client_id: ClientId(1),
 //!     transaction_id: TransactionId(1),
 //!     amount: dec!(100.00),
-//!     status: TransactionStatus::Applied,
 //! };
 //! engine.process(deposit).unwrap();
 //!
@@ -65,5 +64,5 @@ pub use account::Account;
 pub use base::{ClientId, TransactionId};
 pub use engine::Engine;
 pub use error::TransactionError;
-pub use transaction::{TransactionStatus, TransactionType};
+pub use transaction::TransactionType;
 pub use transaction_queue::TransactionQueue;

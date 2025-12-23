@@ -17,7 +17,7 @@
 
 use clap::Parser;
 use csv::{ReaderBuilder, Trim, Writer};
-use ledger_demo_rs::{ClientId, Engine, TransactionId, TransactionStatus, TransactionType};
+use ledger_demo_rs::{ClientId, Engine, TransactionId, TransactionType};
 use rust_decimal::Decimal;
 use serde::Deserialize;
 use std::fs::File;
@@ -99,7 +99,6 @@ impl CsvRecord {
                     client_id,
                     transaction_id,
                     amount,
-                    status: TransactionStatus::Applied,
                 })
             }
             "withdrawal" => {

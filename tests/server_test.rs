@@ -27,9 +27,7 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
-use ledger_demo_rs::{
-    ClientId, Engine, TransactionError, TransactionId, TransactionStatus, TransactionType,
-};
+use ledger_demo_rs::{ClientId, Engine, TransactionError, TransactionId, TransactionType};
 use reqwest::Client;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -78,7 +76,6 @@ impl TransactionRequest {
                 client_id: ClientId(client_id),
                 transaction_id: TransactionId(transaction_id),
                 amount,
-                status: TransactionStatus::Applied,
             },
             Self::Withdrawal {
                 client_id,

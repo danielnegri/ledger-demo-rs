@@ -31,7 +31,6 @@ pub enum TransactionType {
         client_id: ClientId,
         transaction_id: TransactionId,
         amount: Decimal,
-        status: TransactionStatus,
     },
     Withdrawal {
         client_id: ClientId,
@@ -86,13 +85,6 @@ impl TransactionType {
             Self::Deposit { amount, .. } => *amount,
             Self::Withdrawal { amount, .. } => *amount,
             _ => Decimal::ZERO,
-        }
-    }
-
-    pub fn status(&self) -> TransactionStatus {
-        match self {
-            Self::Deposit { status, .. } => *status,
-            _ => TransactionStatus::Applied,
         }
     }
 }
