@@ -51,13 +51,13 @@
 //!
 //! ## Thread Safety
 //!
-//! The engine uses handles concurrent access to accounts, allowing multiple transactions to be 
-//! processed in parallel for different clients. 
+//! The engine uses handles concurrent access to accounts, allowing multiple transactions to be
+//! processed in parallel for different clients.
 
 pub mod account;
-pub mod error;
 mod base;
 mod engine;
+pub mod error;
 mod transaction;
 mod transaction_queue;
 

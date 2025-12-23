@@ -24,12 +24,12 @@
 //! to automatically detect cycles in the lock graph.
 
 use dashmap::DashMap;
-use parking_lot::{deadlock, Mutex};
+use parking_lot::{Mutex, deadlock};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::thread;
 use std::time::Duration;
 
@@ -742,9 +742,7 @@ fn no_deadlock_concurrent_dispute_same_tx() {
     for _ in 0..NUM_THREADS {
         let engine = engine.clone();
 
-        let handle = thread::spawn(move || {
-            engine.dispute(1, 1)
-        });
+        let handle = thread::spawn(move || engine.dispute(1, 1));
 
         handles.push(handle);
     }

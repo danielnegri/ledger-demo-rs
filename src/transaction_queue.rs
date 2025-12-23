@@ -20,9 +20,9 @@
 //! Provides a concurrent queue that ensures transaction ID uniqueness
 //! while maintaining insertion order.
 
+use crate::TransactionError;
 use crate::base::TransactionId;
 use crate::transaction::TransactionType;
-use crate::TransactionError;
 use crossbeam::queue::SegQueue;
 use dashmap::DashMap;
 use std::sync::Arc;

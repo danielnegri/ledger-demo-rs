@@ -29,13 +29,15 @@
 //! ```
 
 use axum::{
+    Json, Router,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::{get, post},
-    Json, Router,
 };
-use ledger_demo_rs::{ClientId, Engine, TransactionError, TransactionId, TransactionSatus, TransactionType};
+use ledger_demo_rs::{
+    ClientId, Engine, TransactionError, TransactionId, TransactionSatus, TransactionType,
+};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

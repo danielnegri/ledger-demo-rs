@@ -20,7 +20,9 @@
 //! These tests verify invariants that should hold for any sequence of
 //! valid transactions.
 
-use ledger_demo_rs::{Account, ClientId, Engine, TransactionError, TransactionId, TransactionSatus, TransactionType};
+use ledger_demo_rs::{
+    Account, ClientId, Engine, TransactionError, TransactionId, TransactionSatus, TransactionType,
+};
 use proptest::prelude::*;
 use rust_decimal::Decimal;
 

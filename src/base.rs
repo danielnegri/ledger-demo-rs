@@ -46,5 +46,3 @@ impl fmt::Display for TransactionId {
         write!(f, "{}", self.0)
     }
 }
-
-

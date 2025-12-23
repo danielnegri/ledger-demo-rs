@@ -36,7 +36,7 @@ pub enum TransactionType {
     Withdrawal {
         client_id: ClientId,
         transaction_id: TransactionId,
-        amount: Decimal
+        amount: Decimal,
     },
     Dispute {
         client_id: ClientId,

@@ -21,7 +21,7 @@ use thiserror::Error;
 
 /// Transaction processing errors.
 #[derive(Error, Debug, Clone, PartialEq, Eq)]
-pub enum TransactionError {    
+pub enum TransactionError {
     /// Amount field is missing for deposit or withdrawal
     #[error("missing amount for deposit/withdrawal")]
     MissingAmount,
@@ -81,7 +81,10 @@ mod tests {
             TransactionError::InsufficientFunds.to_string(),
             "insufficient available funds"
         );
-        assert_eq!(TransactionError::TransactionNotFound.to_string(), "transaction not found");
+        assert_eq!(
+            TransactionError::TransactionNotFound.to_string(),
+            "transaction not found"
+        );
         assert_eq!(
             TransactionError::ClientMismatch.to_string(),
             "client does not own this transaction"
@@ -98,8 +101,14 @@ mod tests {
             TransactionError::NotDisputable.to_string(),
             "only deposits can be disputed"
         );
-        assert_eq!(TransactionError::DuplicateTransaction.to_string(), "duplicate transaction ID");
-        assert_eq!(TransactionError::AccountLocked.to_string(), "account is locked");
+        assert_eq!(
+            TransactionError::DuplicateTransaction.to_string(),
+            "duplicate transaction ID"
+        );
+        assert_eq!(
+            TransactionError::AccountLocked.to_string(),
+            "account is locked"
+        );
     }
 
     #[test]

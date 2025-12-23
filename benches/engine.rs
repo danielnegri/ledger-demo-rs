@@ -25,12 +25,12 @@
 //! - Dispute lifecycle operations
 //! - Scaling with number of clients
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
 use ledger_demo_rs::{ClientId, Engine, TransactionId, TransactionSatus, TransactionType};
 use rayon::prelude::*;
 use rust_decimal::Decimal;
-use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 // =============================================================================
 // Helper Functions
@@ -526,11 +526,7 @@ criterion_group!(
 
 criterion_group!(scaling, bench_thread_scaling, bench_contention,);
 
-criterion_group!(
-    memory,
-    bench_account_creation,
-    bench_transaction_history,
-);
+criterion_group!(memory, bench_account_creation, bench_transaction_history,);
 
 criterion_main!(
     single_threaded,

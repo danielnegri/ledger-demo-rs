@@ -301,9 +301,15 @@ impl Serialize for Account {
         let data = self.inner.lock().unwrap();
         let mut state = serializer.serialize_struct("Account", 5)?;
         state.serialize_field("client", &data.client_id)?;
-        state.serialize_field("available", &data.available.round_dp(Account::DECIMAL_PRECISION))?;
+        state.serialize_field(
+            "available",
+            &data.available.round_dp(Account::DECIMAL_PRECISION),
+        )?;
         state.serialize_field("held", &data.held.round_dp(Account::DECIMAL_PRECISION))?;
-        state.serialize_field("total", &(data.available + data.held).round_dp(Account::DECIMAL_PRECISION))?;
+        state.serialize_field(
+            "total",
+            &(data.available + data.held).round_dp(Account::DECIMAL_PRECISION),
+        )?;
         state.serialize_field("locked", &data.locked)?;
         state.end()
     }
@@ -419,7 +425,10 @@ mod tests {
 
         // Available should be rounded to 4 decimal places: 123.456789 -> 123.4568
         let available = parsed["available"].as_str().unwrap();
-        assert_eq!(available, "123.4568", "available should round to 4 decimal places");
+        assert_eq!(
+            available, "123.4568",
+            "available should round to 4 decimal places"
+        );
 
         // Held should be rounded to 4 decimal places: 0.000001 -> 0.0000
         let held = parsed["held"].as_str().unwrap();

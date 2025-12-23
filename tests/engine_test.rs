@@ -17,7 +17,9 @@
 
 //! Engine public API integration tests.
 
-use ledger_demo_rs::{ClientId, Engine, TransactionError, TransactionId, TransactionSatus, TransactionType};
+use ledger_demo_rs::{
+    ClientId, Engine, TransactionError, TransactionId, TransactionSatus, TransactionType,
+};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 

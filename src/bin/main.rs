@@ -16,14 +16,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use clap::Parser;
+use csv::{ReaderBuilder, Trim, Writer};
+use ledger_demo_rs::{ClientId, Engine, TransactionId, TransactionSatus, TransactionType};
+use rust_decimal::Decimal;
+use serde::Deserialize;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
 use std::path::PathBuf;
 use std::process;
-use csv::{ReaderBuilder, Trim, Writer};
-use rust_decimal::Decimal;
-use serde::Deserialize;
-use ledger_demo_rs::{ClientId, Engine, TransactionId, TransactionSatus, TransactionType};
 
 /// Payment Engine - Process transaction CSV files
 ///
@@ -367,10 +367,17 @@ mod tests {
         assert_eq!(engine.accounts().count(), 3);
 
         // Verify each client has correct balance
-        assert_eq!(engine.get_account(&ClientId(1)).unwrap().available(), dec!(20.0));
-        assert_eq!(engine.get_account(&ClientId(2)).unwrap().available(), dec!(30.0));
-        assert_eq!(engine.get_account(&ClientId(3)).unwrap().available(), dec!(10.0));
+        assert_eq!(
+            engine.get_account(&ClientId(1)).unwrap().available(),
+            dec!(20.0)
+        );
+        assert_eq!(
+            engine.get_account(&ClientId(2)).unwrap().available(),
+            dec!(30.0)
+        );
+        assert_eq!(
+            engine.get_account(&ClientId(3)).unwrap().available(),
+            dec!(10.0)
+        );
     }
 }
-
-
