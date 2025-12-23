@@ -212,9 +212,9 @@ pub fn process_transactions<R: Read>(reader: R) -> Result<Engine, csv::Error> {
 pub fn write_accounts<W: Write>(engine: &Engine, writer: W) -> Result<(), csv::Error> {
     let mut wtr = Writer::from_writer(writer);
 
-    // Get all accounts and serialize each one
-    for account_ref in engine.accounts() {
-        wtr.serialize(account_ref.value())?;
+    // Get all account snapshots and serialize each one
+    for account in engine.accounts() {
+        wtr.serialize(&account)?;
     }
 
     // Flush to ensure all data is written
@@ -236,9 +236,9 @@ mod tests {
 
         let engine = process_transactions(reader).unwrap();
 
-        assert_eq!(engine.accounts().count(), 1);
+        assert_eq!(engine.accounts().len(), 1);
         let account = engine.get_account(&ClientId(1)).unwrap();
-        assert_eq!(account.available(), dec!(100.0));
+        assert_eq!(account.available, dec!(100.0));
     }
 
     #[test]
@@ -250,9 +250,9 @@ mod tests {
 
         let engine = process_transactions(reader).unwrap();
 
-        assert_eq!(engine.accounts().count(), 1);
+        assert_eq!(engine.accounts().len(), 1);
         let account = engine.get_account(&ClientId(1)).unwrap();
-        assert_eq!(account.available(), dec!(70.0));
+        assert_eq!(account.available, dec!(70.0));
     }
 
     #[test]
@@ -264,10 +264,10 @@ mod tests {
 
         let engine = process_transactions(reader).unwrap();
 
-        assert_eq!(engine.accounts().count(), 1);
+        assert_eq!(engine.accounts().len(), 1);
         let account = engine.get_account(&ClientId(1)).unwrap();
-        assert_eq!(account.available(), dec!(0.0));
-        assert_eq!(account.held(), dec!(100.0));
+        assert_eq!(account.available, dec!(0.0));
+        assert_eq!(account.held, dec!(100.0));
     }
 
     #[test]
@@ -281,8 +281,8 @@ mod tests {
         let engine = process_transactions(reader).unwrap();
 
         let account = engine.get_account(&ClientId(1)).unwrap();
-        assert_eq!(account.available(), dec!(100.0));
-        assert_eq!(account.held(), dec!(0.0));
+        assert_eq!(account.available, dec!(100.0));
+        assert_eq!(account.held, dec!(0.0));
     }
 
     #[test]
@@ -296,8 +296,8 @@ mod tests {
         let engine = process_transactions(reader).unwrap();
 
         let account = engine.get_account(&ClientId(1)).unwrap();
-        assert_eq!(account.total(), dec!(0.0));
-        assert!(account.locked());
+        assert_eq!(account.total, dec!(0.0));
+        assert!(account.locked);
     }
 
     #[test]
@@ -307,9 +307,9 @@ mod tests {
 
         let engine = process_transactions(reader).unwrap();
 
-        assert_eq!(engine.accounts().count(), 1);
+        assert_eq!(engine.accounts().len(), 1);
         let account = engine.get_account(&ClientId(1)).unwrap();
-        assert_eq!(account.available(), dec!(100.0));
+        assert_eq!(account.available, dec!(100.0));
     }
 
     #[test]
@@ -322,7 +322,7 @@ mod tests {
 
         let engine = process_transactions(reader).unwrap();
 
-        assert_eq!(engine.accounts().count(), 2); // Two valid deposits
+        assert_eq!(engine.accounts().len(), 2); // Two valid deposits
     }
 
     #[test]
@@ -350,7 +350,7 @@ mod tests {
         write_accounts(&engine, &mut output).unwrap();
 
         let account = engine.get_account(&ClientId(1)).unwrap();
-        assert_eq!(account.available(), dec!(1.5));
+        assert_eq!(account.available, dec!(1.5));
     }
 
     #[test]
@@ -363,19 +363,19 @@ mod tests {
 
         let engine = process_transactions(reader).unwrap();
 
-        assert_eq!(engine.accounts().count(), 3);
+        assert_eq!(engine.accounts().len(), 3);
 
         // Verify each client has correct balance
         assert_eq!(
-            engine.get_account(&ClientId(1)).unwrap().available(),
+            engine.get_account(&ClientId(1)).unwrap().available,
             dec!(20.0)
         );
         assert_eq!(
-            engine.get_account(&ClientId(2)).unwrap().available(),
+            engine.get_account(&ClientId(2)).unwrap().available,
             dec!(30.0)
         );
         assert_eq!(
-            engine.get_account(&ClientId(3)).unwrap().available(),
+            engine.get_account(&ClientId(3)).unwrap().available,
             dec!(10.0)
         );
     }

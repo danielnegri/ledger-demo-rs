@@ -215,11 +215,11 @@ async fn get_account(
         .get_account(&client_id)
         .map(|account| {
             Json(AccountResponse {
-                client: client_id.0,
-                available: account.available(),
-                held: account.held(),
-                total: account.total(),
-                locked: account.locked(),
+                client: account.client_id.0,
+                available: account.available,
+                held: account.held,
+                total: account.total,
+                locked: account.locked,
             })
         })
         .ok_or_else(|| {
@@ -238,16 +238,13 @@ async fn list_accounts(State(state): State<AppState>) -> Json<Vec<AccountRespons
     let accounts: Vec<AccountResponse> = state
         .engine
         .accounts()
-        .map(|ref_multi| {
-            let account = ref_multi.value();
-            let client_id = *ref_multi.key();
-            AccountResponse {
-                client: client_id.0,
-                available: account.available(),
-                held: account.held(),
-                total: account.total(),
-                locked: account.locked(),
-            }
+        .into_iter()
+        .map(|account| AccountResponse {
+            client: account.client_id.0,
+            available: account.available,
+            held: account.held,
+            total: account.total,
+            locked: account.locked,
         })
         .collect();
 

@@ -194,10 +194,10 @@ async fn get_account(
         .map(|account| {
             Json(AccountResponse {
                 client: client_id.0,
-                available: account.available(),
-                held: account.held(),
-                total: account.total(),
-                locked: account.locked(),
+                available: account.available,
+                held: account.held,
+                total: account.total,
+                locked: account.locked,
             })
         })
         .ok_or_else(|| {
@@ -215,16 +215,13 @@ async fn list_accounts(State(state): State<AppState>) -> Json<Vec<AccountRespons
     let accounts: Vec<AccountResponse> = state
         .engine
         .accounts()
-        .map(|ref_multi| {
-            let account = ref_multi.value();
-            let client_id = *ref_multi.key();
-            AccountResponse {
-                client: client_id.0,
-                available: account.available(),
-                held: account.held(),
-                total: account.total(),
-                locked: account.locked(),
-            }
+        .into_iter()
+        .map(|account| AccountResponse {
+            client: account.client_id.0,
+            available: account.available,
+            held: account.held,
+            total: account.total,
+            locked: account.locked,
         })
         .collect();
 
@@ -357,15 +354,13 @@ async fn concurrent_deposits_to_multiple_clients() {
     for client_id in 1..=NUM_CLIENTS {
         let account = server.engine.get_account(&ClientId(client_id)).unwrap();
         assert_eq!(
-            account.total(),
-            expected_balance,
+            account.total, expected_balance,
             "Client {} should have {} total",
-            client_id,
-            expected_balance
+            client_id, expected_balance
         );
-        assert_eq!(account.available(), expected_balance);
-        assert_eq!(account.held(), Decimal::ZERO);
-        assert!(!account.locked());
+        assert_eq!(account.available, expected_balance);
+        assert_eq!(account.held, Decimal::ZERO);
+        assert!(!account.locked);
     }
 }
 
@@ -425,7 +420,7 @@ async fn concurrent_deposits_single_client() {
         AMOUNT_PER_DEPOSIT.parse::<Decimal>().unwrap() * Decimal::from(NUM_DEPOSITS);
 
     let account = server.engine.get_account(&ClientId(1)).unwrap();
-    assert_eq!(account.total(), expected_balance);
+    assert_eq!(account.total, expected_balance);
 }
 
 /// Test that duplicate transaction IDs are rejected.
@@ -475,7 +470,7 @@ async fn concurrent_duplicate_transactions_rejected() {
 
     // Verify balance reflects only one deposit
     let account = server.engine.get_account(&ClientId(1)).unwrap();
-    assert_eq!(account.total(), Decimal::new(10000, 2)); // 100.00
+    assert_eq!(account.total, Decimal::new(10000, 2)); // 100.00
 }
 
 /// Test concurrent deposits and withdrawals to the same client.
@@ -559,11 +554,11 @@ async fn concurrent_deposits_and_withdrawals() {
     // Verify balance is correct and non-negative
     let account = server.engine.get_account(&ClientId(1)).unwrap();
     assert!(
-        account.available() >= Decimal::ZERO,
+        account.available >= Decimal::ZERO,
         "Available balance should never be negative"
     );
     assert!(
-        account.total() >= Decimal::ZERO,
+        account.total >= Decimal::ZERO,
         "Total balance should never be negative"
     );
 
@@ -576,8 +571,7 @@ async fn concurrent_deposits_and_withdrawals() {
     let expected_balance = expected_deposits - expected_withdrawals;
 
     assert_eq!(
-        account.total(),
-        expected_balance,
+        account.total, expected_balance,
         "Balance should match successful operations"
     );
 }
@@ -642,9 +636,9 @@ async fn concurrent_dispute_lifecycle() {
     // Verify all accounts have funds held
     for client_id in 1..=NUM_CLIENTS {
         let account = server.engine.get_account(&ClientId(client_id)).unwrap();
-        assert_eq!(account.available(), Decimal::ZERO);
-        assert_eq!(account.held(), Decimal::new(100000, 2)); // 1000.00
-        assert_eq!(account.total(), Decimal::new(100000, 2));
+        assert_eq!(account.available, Decimal::ZERO);
+        assert_eq!(account.held, Decimal::new(100000, 2)); // 1000.00
+        assert_eq!(account.total, Decimal::new(100000, 2));
     }
 
     // Resolve half, chargeback the other half concurrently
@@ -688,15 +682,15 @@ async fn concurrent_dispute_lifecycle() {
 
         if client_id % 2 == 0 {
             // Resolved - funds back to available
-            assert_eq!(account.available(), Decimal::new(100000, 2));
-            assert_eq!(account.held(), Decimal::ZERO);
-            assert!(!account.locked());
+            assert_eq!(account.available, Decimal::new(100000, 2));
+            assert_eq!(account.held, Decimal::ZERO);
+            assert!(!account.locked);
         } else {
             // Chargebacked - funds removed, account locked
-            assert_eq!(account.available(), Decimal::ZERO);
-            assert_eq!(account.held(), Decimal::ZERO);
-            assert_eq!(account.total(), Decimal::ZERO);
-            assert!(account.locked());
+            assert_eq!(account.available, Decimal::ZERO);
+            assert_eq!(account.held, Decimal::ZERO);
+            assert_eq!(account.total, Decimal::ZERO);
+            assert!(account.locked);
         }
     }
 }
@@ -771,9 +765,9 @@ async fn stress_test_mixed_operations() {
     // Verify all accounts are in a valid state
     for client_id in 1..=NUM_CLIENTS {
         let account = server.engine.get_account(&ClientId(client_id)).unwrap();
-        assert!(account.available() >= Decimal::ZERO);
-        assert!(account.held() >= Decimal::ZERO);
-        assert_eq!(account.total(), account.available() + account.held());
+        assert!(account.available >= Decimal::ZERO);
+        assert!(account.held >= Decimal::ZERO);
+        assert_eq!(account.total, account.available + account.held);
     }
 }
 

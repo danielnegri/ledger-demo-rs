@@ -34,14 +34,58 @@ use crate::transaction::TransactionStatus;
 use crate::{TransactionError, TransactionType};
 use parking_lot::Mutex;
 use rust_decimal::Decimal;
-use serde::ser::{Serialize, SerializeStruct, Serializer};
+use serde::ser::{SerializeStruct, Serializer};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+/// Point-in-time snapshot of account state.
+///
+/// Unlike [`Account`], this is an owned value that doesn't hold any locks,
+/// making it safe to use across [`Engine::process()`](crate::Engine::process) calls.
+///
+/// This prevents a common deadlock pattern where holding a reference to an account
+/// while calling `process()` would block indefinitely.
+#[derive(Debug, Clone, Deserialize)]
+pub struct AccountSnapshot {
+    /// The client ID this account belongs to.
+    #[serde(rename = "client")]
+    pub client_id: ClientId,
+    /// Funds available for withdrawal.
+    pub available: Decimal,
+    /// Funds held due to disputes.
+    pub held: Decimal,
+    /// Total funds (available + held).
+    pub total: Decimal,
+    /// Whether the account is frozen after a chargeback.
+    pub locked: bool,
+}
+
+impl Serialize for AccountSnapshot {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("Account", 5)?;
+        state.serialize_field("client", &self.client_id)?;
+        state.serialize_field(
+            "available",
+            &self.available.round_dp(Account::DECIMAL_PRECISION),
+        )?;
+        state.serialize_field("held", &self.held.round_dp(Account::DECIMAL_PRECISION))?;
+        state.serialize_field(
+            "total",
+            &(self.available + self.held).round_dp(Account::DECIMAL_PRECISION),
+        )?;
+        state.serialize_field("locked", &self.locked)?;
+        state.end()
+    }
+}
 
 /// Tracks deposit amount and status for dispute resolution.
 ///
-//  Deposit (Applied) ──dispute──► Deposit (Inflight) ──resolve───► Deposit (Resolved)
-//                                        │
-//                                        └──chargeback──► Deposit (Voided) + Account Locked
+///  Deposit (Applied) ──dispute──► Deposit (Inflight) ──resolve───► Deposit (Resolved)
+///                                        │
+///                                        └──chargeback──► Deposit (Voided) + Account Locked
 #[derive(Debug, Clone)]
 struct DepositRecord {
     amount: Decimal,
@@ -196,6 +240,21 @@ impl Account {
         self.inner.lock().locked
     }
 
+    /// Creates a point-in-time snapshot of the account state.
+    ///
+    /// The returned snapshot is an owned value that doesn't hold any locks,
+    /// making it safe to use across [`Engine::process()`](crate::Engine::process) calls.
+    pub fn snapshot(&self) -> AccountSnapshot {
+        let data = self.inner.lock();
+        AccountSnapshot {
+            client_id: data.client_id,
+            available: data.available.round_dp(Self::DECIMAL_PRECISION),
+            held: data.held.round_dp(Self::DECIMAL_PRECISION),
+            total: (data.available + data.held).round_dp(Self::DECIMAL_PRECISION),
+            locked: data.locked,
+        }
+    }
+
     pub fn add_transaction(
         &mut self,
         transaction: TransactionType,
@@ -295,28 +354,6 @@ impl Account {
     }
 }
 
-impl Serialize for Account {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let data = self.inner.lock();
-        let mut state = serializer.serialize_struct("Account", 5)?;
-        state.serialize_field("client", &data.client_id)?;
-        state.serialize_field(
-            "available",
-            &data.available.round_dp(Account::DECIMAL_PRECISION),
-        )?;
-        state.serialize_field("held", &data.held.round_dp(Account::DECIMAL_PRECISION))?;
-        state.serialize_field(
-            "total",
-            &(data.available + data.held).round_dp(Account::DECIMAL_PRECISION),
-        )?;
-        state.serialize_field("locked", &data.locked)?;
-        state.end()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -405,24 +442,22 @@ mod tests {
     }
 
     // === Serialization Tests ===
+    // These tests verify AccountSnapshot serialization behavior.
 
     #[test]
     fn serializer_rounds_to_four_decimal_places() {
         use serde_json;
 
-        let account = Account::new(ClientId(1));
+        // Values with more than 4 decimal places should be rounded
+        let snapshot = AccountSnapshot {
+            client_id: ClientId(1),
+            available: dec!(123.456789), // Should round to 123.4568
+            held: dec!(0.000001),        // Should round to 0.0000
+            total: dec!(123.456790),     // Will be recalculated during serialization
+            locked: false,
+        };
 
-        // Deposit amount with more than 4 decimal places
-        {
-            let mut data = account.inner.lock();
-            // 123.456789 should round to 123.4568
-            data.available = dec!(123.456789);
-            data.held = dec!(0.000001); // Should round to 0.0000
-        }
-
-        let json = serde_json::to_string(&account).unwrap();
-
-        // Parse the JSON to verify precision
+        let json = serde_json::to_string(&snapshot).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
 
         // Available should be rounded to 4 decimal places: 123.456789 -> 123.4568
@@ -436,7 +471,7 @@ mod tests {
         let held = parsed["held"].as_str().unwrap();
         assert_eq!(held, "0.0000", "held should round to 4 decimal places");
 
-        // Total should also be rounded
+        // Total is recalculated as available + held during serialization
         let total = parsed["total"].as_str().unwrap();
         assert_eq!(total, "123.4568", "total should round to 4 decimal places");
     }
@@ -445,15 +480,15 @@ mod tests {
     fn serializer_preserves_precision_up_to_four_decimals() {
         use serde_json;
 
-        let account = Account::new(ClientId(42));
+        let snapshot = AccountSnapshot {
+            client_id: ClientId(42),
+            available: dec!(100.1234),
+            held: dec!(50.5678),
+            total: dec!(150.6912),
+            locked: false,
+        };
 
-        {
-            let mut data = account.inner.lock();
-            data.available = dec!(100.1234);
-            data.held = dec!(50.5678);
-        }
-
-        let json = serde_json::to_string(&account).unwrap();
+        let json = serde_json::to_string(&snapshot).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
 
         assert_eq!(parsed["client"], 42);
@@ -467,15 +502,15 @@ mod tests {
     fn serializer_handles_whole_numbers() {
         use serde_json;
 
-        let account = Account::new(ClientId(1));
+        let snapshot = AccountSnapshot {
+            client_id: ClientId(1),
+            available: dec!(1000),
+            held: dec!(500),
+            total: dec!(1500),
+            locked: false,
+        };
 
-        {
-            let mut data = account.inner.lock();
-            data.available = dec!(1000);
-            data.held = dec!(500);
-        }
-
-        let json = serde_json::to_string(&account).unwrap();
+        let json = serde_json::to_string(&snapshot).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
 
         // Whole numbers serialize without trailing zeros
@@ -488,18 +523,18 @@ mod tests {
     fn serializer_uses_bankers_rounding() {
         use serde_json;
 
-        let account = Account::new(ClientId(1));
+        // Banker's rounding (round half to even):
+        // 0.00005 rounds to 0.0000 (rounds to even)
+        // 0.00015 rounds to 0.0002 (rounds to even)
+        let snapshot = AccountSnapshot {
+            client_id: ClientId(1),
+            available: dec!(0.00015),
+            held: dec!(0.00005),
+            total: Decimal::ZERO,
+            locked: false,
+        };
 
-        {
-            let mut data = account.inner.lock();
-            // Banker's rounding (round half to even):
-            // 0.00005 rounds to 0.0000 (rounds to even)
-            // 0.00015 rounds to 0.0002 (rounds to even)
-            data.available = dec!(0.00015);
-            data.held = dec!(0.00005);
-        }
-
-        let json = serde_json::to_string(&account).unwrap();
+        let json = serde_json::to_string(&snapshot).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
 
         // Decimal uses banker's rounding by default

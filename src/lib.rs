@@ -43,9 +43,9 @@
 //! };
 //! engine.process(deposit).unwrap();
 //!
-//! // Check account balance
+//! // Check account balance (returns owned snapshot, safe to use with process())
 //! let account = engine.get_account(&ClientId(1)).unwrap();
-//! assert_eq!(account.available(), dec!(100.00));
+//! assert_eq!(account.available, dec!(100.00));
 //! ```
 //!
 //! ## Thread Safety
@@ -60,7 +60,7 @@ pub mod error;
 mod transaction;
 mod transaction_queue;
 
-pub use account::Account;
+pub use account::{Account, AccountSnapshot};
 pub use base::{ClientId, TransactionId};
 pub use engine::Engine;
 pub use error::TransactionError;

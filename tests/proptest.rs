@@ -613,8 +613,8 @@ proptest! {
         let account1 = engine.get_account(&ClientId(1)).unwrap();
         let account2 = engine.get_account(&ClientId(2)).unwrap();
 
-        prop_assert_eq!(account1.total(), amount1);
-        prop_assert_eq!(account2.total(), amount2);
+        prop_assert_eq!(account1.total, amount1);
+        prop_assert_eq!(account2.total, amount2);
     }
 
     /// Dispute references must be for same client.
@@ -665,7 +665,7 @@ proptest! {
             .map(|i| Decimal::new(i * 100, 4))
             .sum();
 
-        prop_assert_eq!(account.total(), expected);
+        prop_assert_eq!(account.total, expected);
     }
 }
 

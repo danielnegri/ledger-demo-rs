@@ -34,7 +34,7 @@
 //! The engine uses [`DashMap`] for concurrent access to accounts, allowing
 //! multiple transactions to be processed in parallel for different clients.
 
-use crate::account::Account;
+use crate::account::{Account, AccountSnapshot};
 use crate::base::ClientId;
 use crate::{TransactionError, TransactionQueue, TransactionType};
 use dashmap::DashMap;
@@ -122,23 +122,20 @@ impl Engine {
         Ok(())
     }
 
-    /// Returns an iterator over all client accounts.
+    /// Returns snapshots of all client accounts.
     ///
     /// Useful for generating output reports of account states.
-    pub fn accounts(
-        &self,
-    ) -> impl Iterator<Item = dashmap::mapref::multiple::RefMulti<'_, ClientId, Account>> {
-        self.accounts.iter()
+    /// Returns owned data to prevent deadlocks when used alongside `process()`.
+    pub fn accounts(&self) -> Vec<AccountSnapshot> {
+        self.accounts.iter().map(|r| r.snapshot()).collect()
     }
 
-    /// Retrieves a client account by ID.
+    /// Retrieves a snapshot of a client account by ID.
     ///
     /// Returns `None` if no account exists for the given client ID.
-    pub fn get_account(
-        &self,
-        client_id: &ClientId,
-    ) -> Option<dashmap::mapref::one::Ref<'_, ClientId, Account>> {
-        self.accounts.get(client_id)
+    /// Returns owned data to prevent deadlocks when used alongside `process()`.
+    pub fn get_account(&self, client_id: &ClientId) -> Option<AccountSnapshot> {
+        self.accounts.get(client_id).map(|r| r.snapshot())
     }
 }
 
