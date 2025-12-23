@@ -161,7 +161,7 @@ pub fn process_transactions<R: Read>(reader: R) -> Result<Engine, csv::Error> {
         .trim(Trim::All) // Handle whitespace in fields like " deposit "
         .flexible(true) // Allow missing amount field
         .has_headers(true) // Skip first row as header
-        .from_reader(BufReader::new(reader));
+        .from_reader(reader);
 
     for result in rdr.deserialize::<CsvRecord>() {
         match result {
