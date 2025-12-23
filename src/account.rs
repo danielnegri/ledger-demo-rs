@@ -32,10 +32,10 @@
 use crate::base::{ClientId, TransactionId};
 use crate::transaction::TransactionStatus;
 use crate::{TransactionError, TransactionType};
+use parking_lot::Mutex;
 use rust_decimal::Decimal;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use std::collections::HashMap;
-use std::sync::Mutex;
 
 /// Tracks deposit amount and status for dispute resolution.
 ///
@@ -179,28 +179,28 @@ impl Account {
     }
 
     pub fn available(&self) -> Decimal {
-        self.inner.lock().unwrap().available
+        self.inner.lock().available
     }
 
     pub fn held(&self) -> Decimal {
-        self.inner.lock().unwrap().held
+        self.inner.lock().held
     }
 
     /// Returns `available + held`.
     pub fn total(&self) -> Decimal {
-        let data = self.inner.lock().unwrap();
+        let data = self.inner.lock();
         data.available + data.held
     }
 
     pub fn locked(&self) -> bool {
-        self.inner.lock().unwrap().locked
+        self.inner.lock().locked
     }
 
     pub fn add_transaction(
         &mut self,
         transaction: TransactionType,
     ) -> Result<(), TransactionError> {
-        let mut data = self.inner.lock().unwrap();
+        let mut data = self.inner.lock();
         if transaction.client_id() != data.client_id {
             return Err(TransactionError::ClientMismatch);
         }
@@ -300,7 +300,7 @@ impl Serialize for Account {
     where
         S: Serializer,
     {
-        let data = self.inner.lock().unwrap();
+        let data = self.inner.lock();
         let mut state = serializer.serialize_struct("Account", 5)?;
         state.serialize_field("client", &data.client_id)?;
         state.serialize_field(
@@ -414,7 +414,7 @@ mod tests {
 
         // Deposit amount with more than 4 decimal places
         {
-            let mut data = account.inner.lock().unwrap();
+            let mut data = account.inner.lock();
             // 123.456789 should round to 123.4568
             data.available = dec!(123.456789);
             data.held = dec!(0.000001); // Should round to 0.0000
@@ -448,7 +448,7 @@ mod tests {
         let account = Account::new(ClientId(42));
 
         {
-            let mut data = account.inner.lock().unwrap();
+            let mut data = account.inner.lock();
             data.available = dec!(100.1234);
             data.held = dec!(50.5678);
         }
@@ -470,7 +470,7 @@ mod tests {
         let account = Account::new(ClientId(1));
 
         {
-            let mut data = account.inner.lock().unwrap();
+            let mut data = account.inner.lock();
             data.available = dec!(1000);
             data.held = dec!(500);
         }
@@ -491,7 +491,7 @@ mod tests {
         let account = Account::new(ClientId(1));
 
         {
-            let mut data = account.inner.lock().unwrap();
+            let mut data = account.inner.lock();
             // Banker's rounding (round half to even):
             // 0.00005 rounds to 0.0000 (rounds to even)
             // 0.00015 rounds to 0.0002 (rounds to even)

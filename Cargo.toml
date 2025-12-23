@@ -10,6 +10,7 @@ clap = { version = "4.5.53", features = ["derive"] }
 crossbeam = "0.8.4"
 csv = "1.4.0"
 dashmap = "6.1.0"
+parking_lot = "0.12"
 rust_decimal = { version = "1.39.0", features = ["serde-str"] }
 rust_decimal_macros = "1.39.0"
 serde = { version = "1.0.228", features = ["derive"] }
