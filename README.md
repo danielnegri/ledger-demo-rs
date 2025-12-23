@@ -1,6 +1,6 @@
 # Ledger Demo
 
-A payment processing engine that processes transactions that handles:
+A payment processing engine that handles transactions like:
 
 - **Deposits** - Credit funds to a client account
 - **Withdrawals** - Debit funds from a client account
