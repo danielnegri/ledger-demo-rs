@@ -33,6 +33,12 @@ use std::sync::Arc;
 /// Combines a [`DashMap`] for O(1) duplicate checking with a [`SegQueue`]
 /// to preserve insertion order. All operations are lock-free and safe
 /// for concurrent access.
+///
+/// # Note: Memory Growth
+///
+/// Transactions are retained indefinitely for duplicate detection and audit.
+/// Production strategies (expiration, bloom filters, external storage) are
+/// intentionally deferred as a topic for architectural discussion.
 #[derive(Debug)]
 pub struct TransactionQueue {
     /// Map of transaction IDs to transactions for O(1) duplicate detection.
