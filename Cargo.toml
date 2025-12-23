@@ -1,0 +1,32 @@
+[package]
+name = "ledger-demo-rs"
+version = "0.1.0"
+description = "A transaction processing engine for financial operations with support for deposits, withdrawals, disputes, and chargebacks"
+readme = "README.md"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.53", features = ["derive"] }
+crossbeam = "0.8.4"
+csv = "1.4.0"
+dashmap = "6.1.0"
+rust_decimal = { version = "1.39.0", features = ["serde-str"] }
+rust_decimal_macros = "1.39.0"
+serde = { version = "1.0.228", features = ["derive"] }
+thiserror = "2.0.17"
+
+
+[dev-dependencies]
+axum = "0.8.8"
+proptest = "1.9"
+criterion = { version = "0.5", features = ["html_reports"] }
+tokio = { version = "1.48.0", features = ["full"] }
+rayon = "1.10"
+reqwest = { version = "0.12", features = ["json"] }
+serde_json = "1.0"
+futures = "0.3"
+parking_lot = { version = "0.12", features = ["deadlock_detection"] }
+
+[[bench]]
+name = "engine"
+harness = false
