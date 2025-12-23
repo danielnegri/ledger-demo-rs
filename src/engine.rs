@@ -96,7 +96,7 @@ impl Engine {
                 // Store in transaction log first to validate unique tx_id.
                 // This prevents duplicate transactions from being processed.
                 let transaction_arc = Arc::new(transaction);
-                self.transactions.push(transaction_arc)?;
+                self.transactions.push(Arc::clone(&transaction_arc))?;
 
                 // Get existing account or create new one, then process the transaction.
                 // New accounts start with zero balance.
@@ -104,7 +104,7 @@ impl Engine {
                     .accounts
                     .entry(client_id)
                     .or_insert_with(|| Account::new(client_id));
-                account.add_transaction(transaction)?;
+                account.add_transaction(*transaction_arc)?;
             }
             TransactionType::Dispute { .. }
             | TransactionType::Resolve { .. }

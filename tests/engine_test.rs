@@ -18,7 +18,7 @@
 //! Engine public API integration tests.
 
 use ledger_demo_rs::{
-    ClientId, Engine, TransactionError, TransactionId, TransactionSatus, TransactionType,
+    ClientId, Engine, TransactionError, TransactionId, TransactionStatus, TransactionType,
 };
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -28,7 +28,7 @@ fn make_deposit(client_id: u16, tx_id: u32, amount: Decimal) -> TransactionType 
         client_id: ClientId(client_id),
         transaction_id: TransactionId(tx_id),
         amount,
-        status: TransactionSatus::Applied,
+        status: TransactionStatus::Applied,
     }
 }
 

@@ -25,6 +25,7 @@ use crate::base::TransactionId;
 use crate::transaction::TransactionType;
 use crossbeam::queue::SegQueue;
 use dashmap::DashMap;
+use dashmap::mapref::entry::Entry;
 use std::sync::Arc;
 
 /// A thread-safe transaction queue with duplicate detection.
@@ -59,14 +60,15 @@ impl TransactionQueue {
     pub fn push(&self, transaction: Arc<TransactionType>) -> Result<(), TransactionError> {
         let transaction_id = transaction.id();
 
-        if self.transactions.contains_key(&transaction_id) {
-            return Err(TransactionError::DuplicateTransaction);
+        // Use entry API for atomic check-and-insert to prevent race conditions
+        match self.transactions.entry(transaction_id) {
+            Entry::Occupied(_) => Err(TransactionError::DuplicateTransaction),
+            Entry::Vacant(entry) => {
+                entry.insert(transaction);
+                self.transaction_ids.push(transaction_id);
+                Ok(())
+            }
         }
-
-        self.transactions.insert(transaction_id, transaction);
-        self.transaction_ids.push(transaction_id);
-
-        Ok(())
     }
 }
 

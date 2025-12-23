@@ -17,7 +17,7 @@
 
 //! Account public API integration tests.
 
-use ledger_demo_rs::{Account, ClientId, TransactionError, TransactionSatus, TransactionType};
+use ledger_demo_rs::{Account, ClientId, TransactionError, TransactionStatus, TransactionType};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use std::sync::{Arc, Mutex};
@@ -30,7 +30,7 @@ fn make_deposit(client_id: u16, tx_id: u32, amount: Decimal) -> TransactionType 
         client_id: ClientId(client_id),
         transaction_id: ledger_demo_rs::TransactionId(tx_id),
         amount,
-        status: TransactionSatus::Applied,
+        status: TransactionStatus::Applied,
     }
 }
 

@@ -26,7 +26,7 @@
 //! - Scaling with number of clients
 
 use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
-use ledger_demo_rs::{ClientId, Engine, TransactionId, TransactionSatus, TransactionType};
+use ledger_demo_rs::{ClientId, Engine, TransactionId, TransactionStatus, TransactionType};
 use rayon::prelude::*;
 use rust_decimal::Decimal;
 use std::sync::Arc;
@@ -41,7 +41,7 @@ fn make_deposit(client_id: u16, tx_id: u32, amount: i64) -> TransactionType {
         client_id: ClientId(client_id),
         transaction_id: TransactionId(tx_id),
         amount: Decimal::new(amount, 4),
-        status: TransactionSatus::Applied,
+        status: TransactionStatus::Applied,
     }
 }
 

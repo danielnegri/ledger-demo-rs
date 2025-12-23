@@ -31,7 +31,7 @@ pub enum TransactionType {
         client_id: ClientId,
         transaction_id: TransactionId,
         amount: Decimal,
-        status: TransactionSatus,
+        status: TransactionStatus,
     },
     Withdrawal {
         client_id: ClientId,
@@ -53,7 +53,7 @@ pub enum TransactionType {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-pub enum TransactionSatus {
+pub enum TransactionStatus {
     Applied,
     Inflight,
     Resolved,
@@ -89,10 +89,10 @@ impl TransactionType {
         }
     }
 
-    pub fn status(&self) -> TransactionSatus {
+    pub fn status(&self) -> TransactionStatus {
         match self {
             Self::Deposit { status, .. } => *status,
-            _ => TransactionSatus::Applied,
+            _ => TransactionStatus::Applied,
         }
     }
 }

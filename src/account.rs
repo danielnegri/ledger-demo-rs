@@ -30,7 +30,7 @@
 //! ```
 
 use crate::base::{ClientId, TransactionId};
-use crate::transaction::TransactionSatus;
+use crate::transaction::TransactionStatus;
 use crate::{TransactionError, TransactionType};
 use rust_decimal::Decimal;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
@@ -45,7 +45,7 @@ use std::sync::Mutex;
 #[derive(Debug, Clone)]
 struct DepositRecord {
     amount: Decimal,
-    status: TransactionSatus,
+    status: TransactionStatus,
 }
 
 #[derive(Debug)]
@@ -219,7 +219,7 @@ impl Account {
                     transaction_id,
                     DepositRecord {
                         amount,
-                        status: TransactionSatus::Applied,
+                        status: TransactionStatus::Applied,
                     },
                 );
             }
@@ -235,7 +235,7 @@ impl Account {
                     .ok_or(TransactionError::TransactionNotFound)?;
 
                 // Only Applied deposits can be disputed
-                if deposit.status != TransactionSatus::Applied {
+                if deposit.status != TransactionStatus::Applied {
                     return Err(TransactionError::AlreadyDisputed);
                 }
 
@@ -245,7 +245,8 @@ impl Account {
                 data.hold_funds(amount)?;
 
                 // Update deposit status to Inflight
-                data.deposits.get_mut(&transaction_id).unwrap().status = TransactionSatus::Inflight;
+                data.deposits.get_mut(&transaction_id).unwrap().status =
+                    TransactionStatus::Inflight;
             }
             TransactionType::Resolve { transaction_id, .. } => {
                 // Look up the referenced deposit
@@ -255,7 +256,7 @@ impl Account {
                     .ok_or(TransactionError::TransactionNotFound)?;
 
                 // Only Inflight deposits can be resolved
-                if deposit.status != TransactionSatus::Inflight {
+                if deposit.status != TransactionStatus::Inflight {
                     return Err(TransactionError::NotDisputed);
                 }
 
@@ -265,7 +266,8 @@ impl Account {
                 data.release_funds(amount)?;
 
                 // Update deposit status to Resolved
-                data.deposits.get_mut(&transaction_id).unwrap().status = TransactionSatus::Resolved;
+                data.deposits.get_mut(&transaction_id).unwrap().status =
+                    TransactionStatus::Resolved;
             }
             TransactionType::Chargeback { transaction_id, .. } => {
                 // Look up the referenced deposit
@@ -275,7 +277,7 @@ impl Account {
                     .ok_or(TransactionError::TransactionNotFound)?;
 
                 // Only Inflight deposits can be charged back
-                if deposit.status != TransactionSatus::Inflight {
+                if deposit.status != TransactionStatus::Inflight {
                     return Err(TransactionError::NotDisputed);
                 }
 
@@ -285,7 +287,7 @@ impl Account {
                 data.chargeback(amount)?;
 
                 // Update deposit status to Voided
-                data.deposits.get_mut(&transaction_id).unwrap().status = TransactionSatus::Voided;
+                data.deposits.get_mut(&transaction_id).unwrap().status = TransactionStatus::Voided;
             }
         }
 

@@ -21,7 +21,7 @@
 //! valid transactions.
 
 use ledger_demo_rs::{
-    Account, ClientId, Engine, TransactionError, TransactionId, TransactionSatus, TransactionType,
+    Account, ClientId, Engine, TransactionError, TransactionId, TransactionStatus, TransactionType,
 };
 use proptest::prelude::*;
 use rust_decimal::Decimal;
@@ -55,7 +55,7 @@ proptest! {
                 client_id,
                 transaction_id: TransactionId(i as u32),
                 amount: *amount,
-                status: TransactionSatus::Applied,
+                status: TransactionStatus::Applied,
             };
             let _ = account.add_transaction(tx);
         }
@@ -79,7 +79,7 @@ proptest! {
                 client_id,
                 transaction_id: TransactionId(tx_counter),
                 amount: *amount,
-                status: TransactionSatus::Applied,
+                status: TransactionStatus::Applied,
             };
             tx_counter += 1;
             let _ = account.add_transaction(tx);
@@ -112,7 +112,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -155,7 +155,7 @@ proptest! {
                 client_id,
                 transaction_id: TransactionId(i as u32),
                 amount: *amount,
-                status: TransactionSatus::Applied,
+                status: TransactionStatus::Applied,
             };
             account.add_transaction(tx).unwrap();
         }
@@ -180,7 +180,7 @@ proptest! {
                 client_id,
                 transaction_id: TransactionId(i as u32),
                 amount: *amount,
-                status: TransactionSatus::Applied,
+                status: TransactionStatus::Applied,
             };
             account1.add_transaction(tx).unwrap();
         }
@@ -192,7 +192,7 @@ proptest! {
                 client_id,
                 transaction_id: TransactionId((i + 1000) as u32),
                 amount: *amount,
-                status: TransactionSatus::Applied,
+                status: TransactionStatus::Applied,
             };
             account2.add_transaction(tx).unwrap();
         }
@@ -222,7 +222,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -255,7 +255,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -284,7 +284,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(0),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -328,7 +328,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -357,7 +357,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -392,7 +392,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -426,7 +426,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -457,7 +457,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -492,7 +492,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: initial_deposit,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
@@ -513,7 +513,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(2),
             amount: new_deposit,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         let result = account.add_transaction(new_tx);
 
@@ -533,7 +533,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: initial_deposit,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit1).unwrap();
 
@@ -541,7 +541,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(2),
             amount: initial_deposit,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit2).unwrap();
 
@@ -595,7 +595,7 @@ proptest! {
             client_id,
             transaction_id: tx_id,
             amount: amount1,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         engine.process(deposit1).unwrap();
 
@@ -603,7 +603,7 @@ proptest! {
             client_id,
             transaction_id: tx_id, // Same ID!
             amount: amount2,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         let result = engine.process(deposit2);
 
@@ -622,7 +622,7 @@ proptest! {
             client_id: ClientId(1),
             transaction_id: TransactionId(1),
             amount: amount1,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         engine.process(deposit1).unwrap();
 
@@ -630,7 +630,7 @@ proptest! {
             client_id: ClientId(2),
             transaction_id: TransactionId(2),
             amount: amount2,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         engine.process(deposit2).unwrap();
 
@@ -653,7 +653,7 @@ proptest! {
             client_id: ClientId(1),
             transaction_id: TransactionId(1),
             amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         engine.process(deposit).unwrap();
 
@@ -681,7 +681,7 @@ proptest! {
                 client_id,
                 transaction_id: TransactionId(i as u32),
                 amount,
-                status: TransactionSatus::Applied,
+                status: TransactionStatus::Applied,
             };
             engine.process(deposit).unwrap();
         }
@@ -719,7 +719,7 @@ proptest! {
                 client_id,
                 transaction_id: TransactionId(i as u32),
                 amount: *amount,
-                status: TransactionSatus::Applied,
+                status: TransactionStatus::Applied,
             };
             account.add_transaction(tx).unwrap();
         }
@@ -779,7 +779,7 @@ proptest! {
             client_id,
             transaction_id: TransactionId(1),
             amount: deposit_amount,
-            status: TransactionSatus::Applied,
+            status: TransactionStatus::Applied,
         };
         account.add_transaction(deposit).unwrap();
 
